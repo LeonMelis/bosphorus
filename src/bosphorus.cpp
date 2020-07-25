@@ -142,13 +142,15 @@ void Bosphorus::check_library_in_use()
     assert(dat->pring == nullptr);
 }
 
-Bosph::ANF* Bosphorus::read_anf(const char* fname)
+Bosph::ANF* Bosphorus::read_anf(const char* fname, long maxVar)
 {
     assert(fname != NULL);
     check_library_in_use();
 
-    // Find out maxVar in input ANF file
-    size_t maxVar = BLib::ANF::readFileForMaxVar(fname);
+    if (!maxVar) {
+        // Find out maxVar in input ANF file
+        maxVar = BLib::ANF::readFileForMaxVar(fname);
+    }
 
     // Construct ANF
     // ring size = maxVar + 1, because ANF variables start from x0

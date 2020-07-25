@@ -50,6 +50,7 @@ namespace po = boost::program_options;
 string anfInput;
 string anfOutput;
 string cnfInput;
+string anfMaxVar;
 string cnfOutput;
 string solution_output_file;
 
@@ -95,10 +96,11 @@ void parseOptions(int argc, char* argv[])
     // Input/Output
     ("anfread", po::value(&anfInput), "Read ANF from this file")
     ("cnfread", po::value(&cnfInput), "Read CNF from this file")
+    ("anfMaxVar", po::value(&anfMaxVar), "Number of variables in input ANF")
     ("anfwrite", po::value(&anfOutput), "Write ANF output to file")
     ("cnfwrite", po::value(&cnfOutput), "Write CNF output to file")
     ("verb,v", po::value<uint32_t>(&config.verbosity)->default_value(config.verbosity),
-     "Verbosity setting: 0(slient) - 3(noisy)")
+     "Verbosity setting: 0 (silent) - 6 (noisy)")
     ("simplify", po::value<int>(&config.simplify)->default_value(config.simplify),
      "Simplify ANF")
     ("solve", po::bool_switch(&solve_with_cms), "Solve the resulting ANF")
@@ -324,7 +326,8 @@ int main(int argc, char* argv[])
     ANF* anf = NULL;
     if (readANF) {
         double parseStartTime = cpuTime();
-        anf = mylib.read_anf(anfInput.c_str());
+        long maxVar = strtol(anfMaxVar.c_str(), NULL, 10);
+        anf = mylib.read_anf(anfInput.c_str(), maxVar);
         if (config.verbosity) {
             cout << "c [ANF Input] read in T: " << (cpuTime() - parseStartTime)
                  << endl;

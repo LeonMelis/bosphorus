@@ -50,7 +50,7 @@ public:
     static const char* get_version_sha1();
 
     // To read CNF or ANF
-    ANF* read_anf(const char* fname);
+    ANF* read_anf(const char* fname, long maxVar);
     ANF* read_cnf(const char* fname);
     DIMACS* parse_cnf(const char* fname);
     ANF* chunk_dimacs(DIMACS* dimacs);
