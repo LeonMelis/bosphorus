@@ -63,11 +63,14 @@ bool BLib::elimLin(const ConfigData& config, const vector<BoolePolynomial>& eqs,
             return false;
 
         vector<std::pair<size_t, size_t> > linear_idx_nvar;
-        for (size_t i = 0; i < all_equations.size(); i++)
-            if (all_equations[i].deg() == 1)
-                linear_idx_nvar.push_back(
-                    std::make_pair(i, all_equations[i].nUsedVariables()));
-        assert(num_linear == linear_idx_nvar.size());
+        const size_t len = all_equations.size();
+
+        for (size_t i = 0; i < len; i++) {
+            if (all_equations[i].deg() == 1) {
+                linear_idx_nvar.emplace_back(i, all_equations[i].nUsedVariables());
+            }
+        }
+        assert(num_linear == (long)linear_idx_nvar.size());
 
         //No linear equations, reached fixedpoint, exit
         if (num_linear == 0) {

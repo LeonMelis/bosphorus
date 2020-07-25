@@ -236,7 +236,6 @@ lbool SimplifyBySat::simplify(const uint64_t numConfl_lim,
              << time_left << std::fixed << " seconds" << endl;
 
     //Extract data
-    const size_t prev_loop_learnt_sz = loop_learnt.size();
     if (config.verbosity >= 3) {
         cout << "c  Number of unit/assigns/binary/(anti-)equiv/linear ";
     }

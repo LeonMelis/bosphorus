@@ -23,10 +23,10 @@ SOFTWARE.
 
 #include "anf.hpp"
 #include <boost/lexical_cast.hpp>
-#include <cctype>
+//#include <cctype>
 #include <fstream>
-#include <string>
-#include "replacer.hpp"
+//#include <string>
+//#include "replacer.hpp"
 #include "time_mem.h"
 
 using boost::lexical_cast;
@@ -35,9 +35,7 @@ using std::endl;
 using namespace BLib;
 
 ANF::ANF(const polybori::BoolePolyRing* _ring, ConfigData& _config)
-    : ring(_ring),
-      config(_config),
-      replacer(new Replacer)
+    : ring(_ring), config(_config), replacer(new Replacer)
 {
     //ensure that the variables are not new
     for (size_t i = 0; i < ring->nVariables(); i++) {
@@ -60,7 +58,7 @@ size_t ANF::readFileForMaxVar(const std::string& filename)
     size_t maxVar = 0;
 
     std::ifstream ifs(filename.c_str());
-    if (!ifs) {
+    if (ifs.fail()) {
         cout << "Problem opening file: \"" << filename << "\" for reading\n";
         exit(-1);
     }
@@ -106,7 +104,7 @@ size_t ANF::readFile(const std::string& filename)
 
     std::ifstream ifs;
     ifs.open(filename.c_str());
-    if (!ifs) {
+    if (ifs.fail()) {
         cout << "Problem opening file: \"" << filename << "\" for reading\n";
         exit(-1);
     }
@@ -131,7 +129,9 @@ size_t ANF::readFile(const std::string& filename)
         bool readInDesc = false;
         size_t var = 0;
         BooleMonomial m(*ring);
-        for (uint32_t i = 0; i < temp.length(); i++) {
+        size_t len = temp.length();
+
+        for (uint32_t i = 0; i < len; i++) {
             //Handle description separator ','
             if (temp[i] == ',') {
                 if (readInVar) {
@@ -209,8 +209,8 @@ size_t ANF::readFile(const std::string& filename)
 
             if (temp[i] == '*') {
                 if (!readInVar) {
-                    cout << "ERROR: No variable before \"*\" in equation: \"" << temp
-                         << "\"" << endl;
+                    cout << "ERROR: No variable before \"*\" in equation: \""
+                         << temp << "\"" << endl;
                     exit(-1);
                 }
 
@@ -236,8 +236,9 @@ size_t ANF::readFile(const std::string& filename)
             }
 
             if (!startOfVar) {
-                cout << "ERROR: Value of variable is BEFORE \"x\" in the equation: \"" << temp
-                     << "\"" << endl;
+                cout << "ERROR: Value of variable is BEFORE \"x\" in the "
+                        "equation: \""
+                     << temp << "\"" << endl;
                 exit(-1);
             }
             readInVar = true;
@@ -291,11 +292,6 @@ size_t ANF::readFile(const std::string& filename)
 
     ifs.close();
     return maxVar;
-}
-
-void print_solution_map(std::ofstream* ofs)
-{
-
 }
 
 // KMA Chai: Check if this polynomial can cause further ANF propagation
