@@ -34,6 +34,11 @@ using std::cout;
 using std::endl;
 using namespace BLib;
 
+const int OP_POLYNOMIAL = 0;
+const int OP_CONJUNCTION = 1;
+const int OP_EX_DISJUNCTION = 2;
+const int OP_CONSTANT = 3;
+
 ANF::ANF(const polybori::BoolePolyRing* _ring, ConfigData& _config)
     : ring(_ring), config(_config), replacer(new Replacer)
 {
@@ -73,16 +78,14 @@ size_t ANF::readFileForMaxVar(const std::string& filename)
         // however "+1" is a NUMBER but not a MONOMIAL
         // so we have to take that into consideration
         size_t var = 0;
+        size_t len = temp.length();
+
         bool isMonomial = false;
-        for (uint32_t i = 0; i < temp.length(); ++i) {
+        for (uint32_t i = 0; i < len; ++i) {
             //At this point, only numbers are valid
             if (!std::isdigit(temp[i])) {
                 var = 0;
-                if (temp[i] == 'x' || (isMonomial && temp[i] == '(')) {
-                    isMonomial = true;
-                } else {
-                    isMonomial = false;
-                }
+                isMonomial = temp[i] == 'x' || (isMonomial && temp[i] == '(');
             } else if (isMonomial) {
                 var = var * 10 + (temp[i] - '0');
                 maxVar = std::max(
@@ -91,6 +94,62 @@ size_t ANF::readFileForMaxVar(const std::string& filename)
             }
         }
     }
+
+    ifs.close();
+    return maxVar;
+}
+
+size_t ANF::readBinaryFile(const std::string& filename)
+{
+    size_t maxVar = 0;
+
+    std::ifstream ifs;
+    ifs.open(filename.c_str());
+    if (ifs.fail()) {
+        cout << "Problem opening file: \"" << filename << "\" for reading\n";
+        exit(-1);
+    }
+    uint32_t temp;
+
+    BoolePolynomial p(*ring);
+    BooleMonomial m(*ring);
+
+    while (ifs.read((char*)&temp, 4)) {
+        size_t var;
+        uint8_t op;
+
+        op = temp >> 24u;
+        var = temp & 0x00FFFFFFu;
+        maxVar = std::max(maxVar, var);
+
+        switch (op) {
+            case OP_POLYNOMIAL:             // 0
+                addBoolePolynomial(p);      // Flush prev polynomial
+                p = BoolePolynomial(*ring); // New polynomial
+                m = BooleMonomial(*ring);   // New monomial
+                m *= BooleVariable(
+                    var, *ring); // Append variable to current monomial
+                p += m;
+                break;
+            case OP_CONJUNCTION:                // 1, 'AND'
+                m *= BooleVariable(var, *ring); // Add var to current monomial
+                break;
+            case OP_EX_DISJUNCTION:       // 2, 'XOR'
+                m = BooleMonomial(*ring); // New monomial
+                m *= BooleVariable(var, *ring);
+                p += m;
+                break;
+            case OP_CONSTANT: // 4
+                p += BooleConstant(var);
+                break;
+            default:
+                cout << "ERROR: Invalid operant: \"" << op << "\"" << endl;
+                exit(-1);
+        }
+    }
+
+    addBoolePolynomial(p); // Flush last polynomial
+
     ifs.close();
     return maxVar;
 }

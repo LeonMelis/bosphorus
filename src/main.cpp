@@ -59,6 +59,7 @@ string solmap_file_write;
 
 // read/write
 bool readANF;
+bool readBANF;
 bool readCNF;
 bool writeANF;
 bool writeCNF;
@@ -95,6 +96,7 @@ void parseOptions(int argc, char* argv[])
     ("version", "print version number and exit")
     // Input/Output
     ("anfread", po::value(&anfInput), "Read ANF from this file")
+    ("banfread", po::value(&anfInput), "Read BANF from this file")
     ("cnfread", po::value(&cnfInput), "Read CNF from this file")
     ("anfMaxVar", po::value(&anfMaxVar), "Number of variables in input ANF")
     ("anfwrite", po::value(&anfOutput), "Write ANF output to file")
@@ -221,6 +223,9 @@ void parseOptions(int argc, char* argv[])
     if (vm.count("anfread")) {
         readANF = true;
     }
+    if (vm.count("banfread")) {
+        readBANF = true;
+    }
     if (vm.count("cnfread")) {
         readCNF = true;
     }
@@ -330,6 +335,16 @@ int main(int argc, char* argv[])
         anf = mylib.read_anf(anfInput.c_str(), maxVar);
         if (config.verbosity) {
             cout << "c [ANF Input] read in T: " << (cpuTime() - parseStartTime)
+                 << endl;
+        }
+    }
+
+    if (readBANF) {
+        double parseStartTime = cpuTime();
+        long maxVar = strtol(anfMaxVar.c_str(), NULL, 10);
+        anf = mylib.read_banf(anfInput.c_str(), maxVar);
+        if (config.verbosity) {
+            cout << "c [BANF Input] read in T: " << (cpuTime() - parseStartTime)
                  << endl;
         }
     }

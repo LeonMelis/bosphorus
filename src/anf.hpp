@@ -74,6 +74,7 @@ class ANF
     ~ANF();
 
     size_t readFile(const string& filename);
+    size_t readBinaryFile(const string& filename);
     bool propagate();
     inline vector<lbool> extendSolution(const vector<lbool>& solution) const;
     void printStats() const;
