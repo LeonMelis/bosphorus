@@ -29,6 +29,7 @@ SOFTWARE.
 #include <vector>
 #include "bosphorus/solvertypesmini.hpp"
 #include "polybori.h"
+#include "anfutils.hpp"
 
 USING_NAMESPACE_PBORI
 using namespace Bosph;
@@ -60,8 +61,9 @@ class Replacer
     //returns updated vars
     vector<uint32_t> setValue(uint32_t var, bool value);
     vector<uint32_t> setReplace(uint32_t var, Lit lit);
-    BoolePolynomial update(const BooleMonomial& m) const;
+    BoolePolynomial update(const BooleMonomial& monomial) const;
     BoolePolynomial update(const BoolePolynomial& m) const;
+    BoolePolynomial update(const BoolePolynomial& target, int var) const;
 
     bool willUpdate(const BoolePolynomial& m) const;
     bool evaluate(const vector<lbool>& vals) const;
@@ -83,9 +85,20 @@ class Replacer
     vector<uint32_t> getReplacesVars(const uint32_t var) const;
 
    private:
-    //uint32_t-to-equi/antivalent var
+    // 'value' is a lookup table for replacing a mono with a value (0 or 1).
+    // 'lbool' is 3-valued boolean (l_True, l_False, t_Undef)
+    // The index corresponds with the monomial to replace
+    // - l_Undef = do not replace this mono with a constant
+    // - l_True = replace mono with '1'
+    // - l_False = replace mono with '0' (remove mono)
     vector<lbool> value;
+    // 'replaceTable' is a lookup table for replacing a mono with another mono.
+    // 'lit' is a literal where the lsb is used as a sign byte, get the 'real'
+    // value with lit.val()
+    // The index corresponds with the monomial to replace
     vector<Lit> replaceTable;
+    // 'revReplaceTable' is a reverse lookup table. The first value is the
+    // replacement mono value. The second value is a vector of monos it replaces.
     map<uint32_t, vector<uint32_t> > revReplaceTable;
 
     //state

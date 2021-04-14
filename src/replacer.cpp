@@ -77,25 +77,39 @@ bool Replacer::evaluate(const vector<lbool>& vals) const
  *              = (1+d)*(e)*(1+f)
  *              = a*b*c
  */
-BoolePolynomial Replacer::update(const BooleMonomial& m) const
+BoolePolynomial Replacer::update(const BooleMonomial& monomial) const
 {
-    BoolePolynomial ret(true, m.ring());
+    BoolePolynomial ret(true, monomial.ring());
 
-    for (const uint32_t v : m) {
+    // iterate the variables in the monomial
+    // v is a uint32_t of the index() of the BooleVariable
+    for (const uint32_t v : monomial) {
+        // 'value' is a lookup table for replacing a mono with a fixed value
+        // (0 or 1).
+        // 'value' is of type 'lbool', which is a Mate Soos special (tm)
+        // for 3-valued booleans (l_True, l_False, t_Undef)
+        // The index in the 'value' table corresponds with the monomial value
+        // - l_Undef = do not replace this mono with a constant
+        // - l_True = replace mono with '1'
+        // - l_False = replace mono with '0' (remove mono)
         if (value[v] != l_Undef) {
             if (value[v] == l_True)
                 continue;
             else
-                return BoolePolynomial(m.ring());
+                return BoolePolynomial(monomial.ring());
         }
 
+        // The 'replaceTable' is a table of replacement monomials.
+        // The index corresponds with a monomial value, the value is a 'Lit'
+        // (literal?) instance, which points to the monomial to replace with, in
+        // the same ring.
         assert(replaceTable.size() > v); //Variable must exist
         const Lit lit = replaceTable[v];
 
-        BoolePolynomial alsoAdd(m.ring());
+        BoolePolynomial alsoAdd(monomial.ring());
         if (lit.sign())
             alsoAdd = ret;
-        ret *= BooleVariable(lit.var(), m.ring());
+        ret *= BooleVariable(lit.var(), monomial.ring());
         ret += alsoAdd;
     }
 
@@ -105,11 +119,86 @@ BoolePolynomial Replacer::update(const BooleMonomial& m) const
 BoolePolynomial Replacer::update(const BoolePolynomial& eq) const
 {
     BoolePolynomial ret = BoolePolynomial(eq.ring());
+
     for (const BooleMonomial& mono : eq) {
         ret += update(mono);
     }
+
     return ret;
 }
+
+//BoolePolynomial Replacer::update(const BoolePolynomial& target, int i) const
+//{
+//    if (target.isConstant())
+//        return target;
+//
+//    if (value[i] != l_Undef) {
+//        if (value[i] == l_True) {
+//            // Replace this mono with a '1', meaning it is not changed
+//            return BoolePolynomial(true, target.ring());
+//        }
+//        // Replace this mono with a '0', meaning it is being removed
+//        return BoolePolynomial(false, target.ring());
+//    }
+//
+//    const int from_var = target.usedVariables().firstVariable().index();
+//    const int var = replaceTable[i].var();
+//
+//    if (from_var > var)
+//        return target;
+//
+//    if (from_var < var) {
+//        BoolePolynomial lo = BoolePolynomial(target.navigation().elseBranch(), target.ring());
+//        BoolePolynomial hi = BoolePolynomial(target.navigation().thenBranch(), target.ring());
+//
+//        lo = update(lo, i);
+//        hi = update(hi, i);
+//
+//        return lo + (var * hi);
+//    }
+//
+//    if (from_var == var) {
+//        BoolePolynomial substitution = BoolePolynomial(var, target.ring());
+//        BoolePolynomial lo = BoolePolynomial(target.navigation().elseBranch(), target.ring());
+//        BoolePolynomial hi = BoolePolynomial(target.navigation().thenBranch(), target.ring());
+//
+//        lo = update(lo, i + 1);
+//        hi = update(hi, i + 1);
+//
+//        return lo + (hi * substitution);
+//    }
+//}
+
+//BoolePolynomial Replacer::update(const BoolePolynomial& eq) const
+//{
+//    BoolePolynomial ret = BoolePolynomial(eq.ring());
+//
+//    // Replace all variables with constants, where needed
+//    for (int i = 0; i < value.size(); i++) {
+//        const lbool con = value[i];
+//
+//        if (con == l_Undef)
+//            continue;
+//
+//        const BooleVariable var = BooleVariable(i, eq.ring());
+//        substitute_in_place(var, BoolePolynomial(con == l_True, eq.ring()), ret);
+//    }
+//
+//    // Then perform the replacements
+//    for (int i = 0; i < replaceTable.size(); i++) {
+//        const Lit with = replaceTable[i];
+//
+//        if (with.var() == i) {
+//            // not being replaced
+//            continue;
+//        }
+//
+//        const BooleVariable var = BooleVariable(i, eq.ring());
+//        substitute_in_place(var, BoolePolynomial(with.var(), eq.ring()), ret);
+//    }
+//
+//    return ret;
+//}
 
 bool Replacer::willUpdate(const BoolePolynomial& eq) const
 {

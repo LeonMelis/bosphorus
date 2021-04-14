@@ -132,3 +132,67 @@ void BLib::subsitute(const BooleVariable& from_var, const BoolePolynomial& to_po
         swap(quotient, poly); // because we are returning poly
     }
 }
+
+/**
+ * Substitute variable 'from_var' in 'target' with 'to_poly'
+ *
+ * @param from_var the variable to replace
+ * @param to_poly the target to replace with
+ * @param target pointer to the target to perform the replacement on (like 'this' in our Python ZDD implementation)
+ */
+BoolePolynomial BLib::substitute(const BooleVariable& from_var,
+                                 const BoolePolynomial& to_poly, BoolePolynomial& target)
+{
+    if (target
+            .isSingleton()) // for some reason, we need this special case to prevent segfault in some cases
+        return target;
+
+    const BooleVariable var = target.usedVariables().firstVariable();
+
+    if (var < from_var) {
+        BoolePolynomial lo = BoolePolynomial(target.navigation().elseBranch(), target.ring());
+        BoolePolynomial hi = BoolePolynomial(target.navigation().thenBranch(), target.ring());
+
+        lo = substitute(from_var, to_poly, lo);
+        hi = substitute(from_var, to_poly, hi);
+
+        return lo + (var * hi);
+    } else if (var > from_var) {
+        return target;
+    } else if (var == from_var) {
+        BoolePolynomial lo = BoolePolynomial(target.navigation().elseBranch(), target.ring());
+        BoolePolynomial hi = BoolePolynomial(target.navigation().thenBranch(), target.ring());
+
+        return lo + (hi * to_poly);
+    }
+
+    return target;
+}
+
+
+void BLib::substitute_in_place(const BooleVariable& from_var,
+                                 const BoolePolynomial& to_poly, BoolePolynomial& target)
+{
+    if (target
+            .isSingleton()) // for some reason, we need this special case to prevent segfault in some cases
+        return;
+
+    const BooleVariable var = target.usedVariables().firstVariable();
+
+    if (var < from_var) {
+        BoolePolynomial lo = BoolePolynomial(target.navigation().elseBranch(), target.ring());
+        BoolePolynomial hi = BoolePolynomial(target.navigation().thenBranch(), target.ring());
+
+        substitute(from_var, to_poly, lo);
+        substitute(from_var, to_poly, hi);
+
+        target = lo + (var * hi);
+    } else if (var > from_var) {
+        return;
+    } else if (var == from_var) {
+        BoolePolynomial lo = BoolePolynomial(target.navigation().elseBranch(), target.ring());
+        BoolePolynomial hi = BoolePolynomial(target.navigation().thenBranch(), target.ring());
+
+        target = lo + (hi * to_poly);
+    }
+}

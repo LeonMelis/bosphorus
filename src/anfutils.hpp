@@ -47,6 +47,15 @@ void subsitute(const polybori::BooleVariable& from_var,
                const polybori::BoolePolynomial& to_poly,
                polybori::BoolePolynomial& poly);
 
+polybori::BoolePolynomial substitute(const polybori::BooleVariable& from_var,
+                                     const polybori::BoolePolynomial& to_poly,
+                                     polybori::BoolePolynomial& target);
+
+void substitute_in_place(const polybori::BooleVariable& from_var,
+                                     const polybori::BoolePolynomial& to_poly,
+                                     polybori::BoolePolynomial& target);
+
 }
+
 
 #endif

@@ -31,7 +31,7 @@ using namespace BLib;
 
 // Implementation based on https://infoscience.epfl.ch/record/176270/files/ElimLin_full_version.pdf
 bool BLib::elimLin(const ConfigData& config, const vector<BoolePolynomial>& eqs,
-             vector<BoolePolynomial>& loop_learnt)
+                   vector<BoolePolynomial>& loop_learnt)
 {
     //don't run if empty
     if (eqs.empty()) {
@@ -141,7 +141,8 @@ bool BLib::elimLin(const ConfigData& config, const vector<BoolePolynomial>& eqs,
                     if (linear_idx == idx)
                         poly = 0; // replacing itself
                     else {
-                        subsitute(from_var, to_poly, poly);
+                        // poly = substitute(from_var, to_poly, poly);
+                        substitute_in_place(from_var, to_poly, poly);
                         BooleMonomial curr_used(poly.usedVariables());
                         BooleMonomial gcd = prev_used.GCD(curr_used);
                         prev_used /= gcd; // update remove list
