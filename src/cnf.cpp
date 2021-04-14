@@ -39,8 +39,18 @@ CNF::CNF(const ANF& _anf, const ConfigData& _config)
 
     // Add regular equations
     const vector<BoolePolynomial>& eqs = anf.getEqs();
+    cout << "c Adding " << eqs.size() << " regular equations to CNF" << endl;
+    uint32_t curr_idx = 1;
     for (const BoolePolynomial& poly : eqs) {
         addBoolePolynomial(poly);
+
+        if (config.verbosity >= 6) {
+            if (eqs.size() > 100 && curr_idx % (eqs.size() / 100) < 1) {
+                cout << "c Added " << curr_idx << " of " << eqs.size() << endl;
+            }
+        }
+
+        curr_idx++;
     }
 }
 

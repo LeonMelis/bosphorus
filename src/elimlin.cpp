@@ -54,13 +54,17 @@ bool BLib::elimLin(const ConfigData& config, const vector<BoolePolynomial>& eqs,
     bool timeout = (cpuTime() > config.maxTime);
     bool fixedpoint = false;
     while (!fixedpoint && !timeout) {
+        cout << "c [ElinLin] starting ElimLin cycle" << endl;
+
         fixedpoint = true;
 
         // Perform Gauss Jordan
         GaussJordan gj(all_equations, ring, config.verbosity);
-        const long num_linear = gj.run(&all_equations, NULL);
-        if (num_linear == GaussJordan::BAD)
+        const long num_linear = gj.run(&all_equations, nullptr);
+        if (num_linear == GaussJordan::BAD) {
+            cout << "c ERROR: GaussJordan failed!" << endl;
             return false;
+        }
 
         vector<std::pair<size_t, size_t> > linear_idx_nvar;
         const size_t len = all_equations.size();
@@ -176,7 +180,9 @@ bool BLib::elimLin(const ConfigData& config, const vector<BoolePolynomial>& eqs,
         cout << "c [ElimLin] Done. Learnt: "
              << (loop_learnt.size() - loop_learnt_size_orig)
              << " T: " << std::fixed << std::setprecision(2)
-             << (cpuTime() - myTime) << endl;
+             << (cpuTime() - myTime)
+             << " using " << static_cast<double>(memUsed()) / 1024.0 / 1024.0
+             << "MB.\n";
     }
 
     return true;
