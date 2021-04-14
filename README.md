@@ -96,6 +96,29 @@ Explanation of simplifications performed:
 * The second polynomial becomes `(x2 + x3) * x2 + x2 * x3 + 1 = 0`, which simplifies to `x2 + 1 = 0`
 * Substituting `x2 + 1 = 0` yields `x1 + x3 + 1 = 0`
 
+
+## Counting solutions to ANF problems
+
+You can count the solution to the ANF in `test.anf` by using the standard translation and taking advantage of the projection written inside the CNF. This projection set is written as `c ind var1 var2 ... varn 0`. Many counters, such as [ApproxMC](https://github.com/meelgroup/approxmc) are able to use this format to count the solutions in the CNF. Here is how to do it with ApproxMC:
+
+```
+./bosphorus --anfread test.anf --cnfwrite out.cnf
+approxmc out.cnf
+[...]
+c [appmc] Number of solutions is: 256*2**6
+s mc 16384
+```
+
+If the number of solutions is low (say, less than 1000) you can also use CryptoMiniSat to do the counting:
+
+```
+./bosphorus --anfread test.anf --cnfwrite out.cnf
+cryptominisat --maxsol 100000 out.cnf
+[...]
+c Number of solutions found until now:    16384
+s UNSATISFIABLE
+```
+
 ## CNF simplification
 Bosphorus can simplify and solve CNF problems. When simplifying or solving CNF problems, the CNF is (extremely) naively translated to ANF, then simplifications are applied, and a sophisticated system then translates the ANF back to CNF. This CNF can then be optinally solved.
 
@@ -175,6 +198,48 @@ cmake ..
 make -j4
 ./bosphorus -h
 ```
+
+## Mapping solutions from CNF to ANF
+
+Let's take a simple ANF:
+
+```
+$ cat test.anf
+x(1) + x2 + x3
+x1*x2 + x2*x3 + 1
+```
+
+Let's simplify and it to CNF:
+
+```
+./bosphorus --anfread test.anf  --cnfwrite test.cnf --solmap solution_map
+```
+
+Let's solve with any SAT solver:
+
+```
+lingeling test.cnf > cnf_solution
+```
+
+Let's map the CNF solution back to ANF using the python script under `utils/map_solution.py`:
+
+```
+./map_solution.py solution_map cnf_solution
+c solution below, with variables starting at 0, as per ANF convention.
+s ANF-SATISFIABLE
+v x(0) 1+x(1) 1+x(2) x(3)
+```
+
+This means that `x(0)=FALSE`, `x(1)=TRUE`, `x(2)=TRUE`, and `x(3)=FALSE`.
+
+If you want all solutions:
+
+```
+./cryptominisat x --maxsol 10000000 > cnf_solutions
+```
+
+Then take the solutions from `cnf_solutions` individually, put them in a file, and call `map_solution` on it, as before.
+
 
 ## Fuzzing
 The tool comes with a built-in ANF fuzzer. To use, install [cryptominisat](https://github.com/msoos/cryptominisat), then run:
