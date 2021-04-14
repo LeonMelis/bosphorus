@@ -430,7 +430,7 @@ int main(int argc, char* argv[])
     if (solve_with_cms) {
         cout << "c Solving with CMS" << endl;
         if (!writeCNF) {
-            cnf = mylib.write_cnf(NULL, anf);
+            cnf = mylib.write_cnf(nullptr, anf);
         }
         #ifdef USE_CMS
         if (solve_with_cms || all_solutions) {

@@ -103,7 +103,7 @@ class GaussJordan
     {
         double startTime = cpuTime();
         long num_linear = 0;
-        if (all_equations != NULL) {
+        if (all_equations != nullptr) {
             all_equations->clear();
         }
 
@@ -136,7 +136,7 @@ class GaussJordan
                 if (verbosity >= 1) {
                     cout << "c [GJ] UnSAT\n";
                 }
-                if (learnt_equations != NULL) {
+                if (learnt_equations != nullptr) {
                     learnt_equations->push_back(BoolePolynomial(1, ring));
                 }
                 return BAD;
@@ -146,10 +146,10 @@ class GaussJordan
             if (poly.deg() == 1) {
                 num_linear++;
             }
-            if (all_equations != NULL) {
+            if (all_equations != nullptr) {
                 all_equations->push_back(poly);
             }
-            if (learnt_equations != NULL) {
+            if (learnt_equations != nullptr) {
                 if (poly.deg() == 1) {
                     // linear equation
                     learnt_equations->push_back(poly);
